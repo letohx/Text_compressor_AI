@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cohere Chatbot</title>
+    <title>Cohere Summarizer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -31,10 +31,6 @@
             margin-bottom: 20px;
         }
 
-        .chat-box p {
-            margin: 5px 0;
-        }
-
         .input-box {
             display: flex;
         }
@@ -59,35 +55,18 @@
         .input-box button:hover {
             background-color: #45a049;
         }
-
-        .api-key-container {
-            margin-top: 20px;
-        }
-
-        .api-key-container input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
     <div class="chat-container">
-        <h2>Cohere Chatbot</h2>
+        <h2>Cohere Summarizer</h2>
         <div class="chat-box" id="chatBox">
-            <p><strong>Bot:</strong> Hello! How can I help you today?</p>
+            <p><strong>Bot:</strong> Hello! Type some text to summarize.</p>
         </div>
 
         <div class="input-box">
             <input type="text" id="userInput" placeholder="Type a message...">
             <button onclick="sendMessage()">Send</button>
-        </div>
-
-        <div class="api-key-container">
-            <form>
-                <input type="text" id="apiKeyInput" autocomplete="new-password" placeholder="Enter your Cohere API key">
-            </form>
         </div>
     </div>
 
@@ -95,55 +74,32 @@
         async function sendMessage() {
             const chatBox = document.getElementById('chatBox');
             const userInput = document.getElementById('userInput').value;
-            const apiKey = document.getElementById('apiKeyInput').value;
 
-            if (!userInput || !apiKey) {
-                alert('Please enter both a message and your API key.');
+            if (!userInput) {
+                alert('Please enter a message.');
                 return;
             }
 
-            // Add the user's message to the chat
             chatBox.innerHTML += `<p><strong>You:</strong> ${userInput}</p>`;
             document.getElementById('userInput').value = '';
 
             try {
-                // Промпт для сокращения текста
-                const shortenPrompt = "Please summarize the following text into a single, very brief sentence that clearly describes the main action or scene so that an informative image can be created based on this description:";
-                const prompt = `${shortenPrompt}\n\n${userInput}`;
-
-                // Call Cohere API for text summarization
-                const response = await fetch('/.netlify/functions/fetch-cohere', {
+                const response = await fetch('/.netlify/functions/summarize', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${apiKey}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        model: 'command-xlarge-nightly',
-                        prompt: prompt,
-                        max_tokens: 50, // Уменьшаем max_tokens для краткого ответа
-                        temperature: 0.7
-                    })
+                    body: JSON.stringify({ text: userInput })
                 });
 
                 const data = await response.json();
-                console.log('Full response from API:', data); // Отладка
-
-                // Check if text exists in the response
-                if (data.text) {
-                    let summarizedText = data.text.trim();
-
-                    // Add the summarized text to the chat
-                    chatBox.innerHTML += `<p><strong>Bot:</strong> ${summarizedText}</p>`;
-                } else {
-                    chatBox.innerHTML += `<p><strong>Bot:</strong> Sorry, no summary generated. Please try again.</p>`;
-                }
+                chatBox.innerHTML += `<p><strong>Bot:</strong> ${data.summary}</p>`;
             } catch (error) {
-                console.error('Error fetching data:', error);
-                chatBox.innerHTML += `<p><strong>Bot:</strong> There was an error processing your request. Please check your API key and try again.</p>`;
+                console.error('Error:', error);
+                chatBox.innerHTML += `<p><strong>Bot:</strong> Error processing your request. Please try again later.</p>`;
             }
 
-            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
     </script>
 </body>
