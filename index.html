@@ -112,7 +112,7 @@
                 const prompt = `${shortenPrompt}\n\n${userInput}`;
 
                 // Call Cohere API for text summarization
-                const response = await fetch('https://api.cohere.ai/generate', {
+                const response = await fetch('/.netlify/functions/fetch-cohere', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${apiKey}`,

@@ -1,23 +1,35 @@
-const fetch = require("node-fetch");
+const fetch = require('node-fetch');
 
-exports.handler = async function (event, context) {
-  const response = await fetch("https://api.cohere.ai/generate", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer YOUR_COHERE_API_KEY`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "command-xlarge-nightly",
-      prompt: "Пример запроса",
-      max_tokens: 100,
-      temperature: 0.7
-    })
-  });
+exports.handler = async function(event, context) {
+    const apiKey = process.env.COHERE_API_KEY; // Использование переменной окружения
 
-  const data = await response.json();
-  return {
-    statusCode: 200,
-    body: JSON.stringify(data),
-  };
+    const { model, prompt, max_tokens, temperature } = JSON.parse(event.body);
+
+    try {
+        const response = await fetch('https://api.cohere.ai/generate', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: model,
+                prompt: prompt,
+                max_tokens: max_tokens,
+                temperature: temperature
+            })
+        });
+
+        const data = await response.json();
+        return {
+            statusCode: 200,
+            body: JSON.stringify(data)
+        };
+    } catch (error) {
+        console.error('Error:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Failed to fetch data' })
+        };
+    }
 };
