@@ -1,16 +1,17 @@
+// summarize.js
 const fetch = require('node-fetch');
 
 exports.handler = async function(event, context) {
-    const { text } = JSON.parse(event.body);
-    const COHERE_API_KEY = process.env.COHERE_API_KEY; // Используем переменную окружения
+    const COHERE_API_KEY = process.env.COHERE_API_KEY;
 
-    const prompt = `Summarize the following text into a concise sentence:\n\n"${text}"`;
+    const { text } = JSON.parse(event.body);
+    const prompt = `Retell the following text in a short sentence of no more than 10 words:\n\n"${text}"`;
 
     try {
         const response = await fetch('https://api.cohere.ai/generate', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${COHERE_API_KEY}`, // Ключ подтягивается из окружения
+                'Authorization': `Bearer ${COHERE_API_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -30,7 +31,7 @@ exports.handler = async function(event, context) {
         console.error('Error:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to fetch data' })
+            body: JSON.stringify({ error: 'Ошибка при сокращении текста.' })
         };
     }
 };
